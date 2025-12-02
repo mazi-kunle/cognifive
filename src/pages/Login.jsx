@@ -1,20 +1,42 @@
 import React, { useState } from "react";
-import { Shield, Menu, Lock } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Shield, Lock } from "lucide-react";
+import Navbar from "../components/Navbar";
 
-const LoginPage = () => {
-  const [isLogin, setIsLogin] = useState(true);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+const Login = ({ onLogin }) => {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    confirmPassword: "",
   });
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
-    // Handle login/signup logic here
+
+    try {
+      const response = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+      console.log("Backend response:", data);
+
+      if (!response.ok) {
+        alert(data.message || "Login failed");
+        return;
+      }
+
+      // If backend returns success
+      if (onLogin) onLogin();
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      alert("Something went wrong");
+    }
   };
 
   const handleChange = (e) => {
@@ -26,34 +48,7 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Navbar */}
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            {/* Logo */}
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-teal-500 rounded-lg flex items-center justify-center">
-                <svg
-                  className="w-5 h-5 text-white"
-                  viewBox="0 0 24 24"
-                  fill="currentColor">
-                  <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5zm0 18c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6zm-1-10h2v2h-2v-2zm0 4h2v4h-2v-4z" />
-                </svg>
-              </div>
-              <span className="text-xl font-bold text-gray-800">
-                MedDoc <span className="text-teal-500">AI</span>
-              </span>
-            </div>
-
-            {/* Desktop Menu */}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-gray-600 hover:text-gray-800">
-              <Menu className="w-6 h-6" />
-            </button>
-          </div>
-        </div>
-      </nav>
+      <Navbar isAuthenticated={false} />
 
       {/* Main Content */}
       <div className="py-8 px-4 sm:py-12 lg:py-16">
@@ -63,24 +58,14 @@ const LoginPage = () => {
             <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 lg:p-10 order-2 lg:order-1">
               {/* Toggle Tabs */}
               <div className="flex mb-8 border-b border-gray-200">
-                <button
-                  onClick={() => setIsLogin(true)}
-                  className={`flex-1 pb-3 text-center font-medium transition-all relative ${
-                    isLogin
-                      ? "text-teal-500 border-b-2 border-teal-500"
-                      : "text-gray-500 hover:text-gray-700"
-                  }`}>
+                <button className="flex-1 pb-3 text-center font-medium text-teal-500 border-b-2 border-teal-500">
                   Login
                 </button>
-                <button
-                  onClick={() => setIsLogin(false)}
-                  className={`flex-1 pb-3 text-center font-medium transition-all relative ${
-                    !isLogin
-                      ? "text-teal-500 border-b-2 border-teal-500"
-                      : "text-gray-500 hover:text-gray-700"
-                  }`}>
+                <Link
+                  to="/signup"
+                  className="flex-1 pb-3 text-center font-medium text-gray-500 hover:text-gray-700">
                   Sign Up
-                </button>
+                </Link>
               </div>
 
               {/* Form */}
@@ -115,66 +100,11 @@ const LoginPage = () => {
                   />
                 </div>
 
-                {/* Confirm Password (Sign Up Only) */}
-                {!isLogin && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-2">
-                      Confirm Password
-                    </label>
-                    <div className="relative">
-                      <input
-                        type={showPassword ? "text" : "password"}
-                        name="confirmPassword"
-                        value={formData.confirmPassword}
-                        onChange={handleChange}
-                        placeholder="Confirm Password"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition placeholder-gray-400 pr-10"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                        <svg
-                          className="w-5 h-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24">
-                          {showPassword ? (
-                            <>
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
-                              />
-                            </>
-                          ) : (
-                            <>
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                              />
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                              />
-                            </>
-                          )}
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-                )}
-
                 {/* Submit Button */}
                 <button
                   onClick={handleSubmit}
                   className="w-full bg-teal-500 text-white py-3.5 rounded-lg font-semibold hover:bg-teal-600 active:bg-teal-700 transition shadow-sm hover:shadow-md">
-                  {isLogin ? "Login Securely" : "Create Account Securely"}
+                  Login Securely
                 </button>
 
                 {/* Forgot Password */}
@@ -233,7 +163,6 @@ const LoginPage = () => {
                 <svg
                   className="absolute inset-0 w-full h-full"
                   viewBox="0 0 256 256">
-                  {/* Top Lines */}
                   <line
                     x1="60"
                     y1="30"
@@ -253,7 +182,6 @@ const LoginPage = () => {
                   />
                   <circle cx="220" cy="30" r="4" fill="#5EEAD4" />
 
-                  {/* Right Lines */}
                   <line
                     x1="230"
                     y1="80"
@@ -273,7 +201,6 @@ const LoginPage = () => {
                   />
                   <circle cx="230" cy="180" r="4" fill="#5EEAD4" />
 
-                  {/* Bottom Lines */}
                   <line
                     x1="180"
                     y1="226"
@@ -293,7 +220,6 @@ const LoginPage = () => {
                   />
                   <circle cx="70" cy="226" r="4" fill="#5EEAD4" />
 
-                  {/* Left Lines */}
                   <line
                     x1="26"
                     y1="180"
@@ -317,7 +243,6 @@ const LoginPage = () => {
                 {/* Main Shield */}
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="relative w-32 h-36 sm:w-36 sm:h-40 lg:w-40 lg:h-44">
-                    {/* Shield Background */}
                     <svg
                       viewBox="0 0 120 132"
                       fill="none"
@@ -328,7 +253,6 @@ const LoginPage = () => {
                       />
                     </svg>
 
-                    {/* Lock Icon */}
                     <div className="absolute inset-0 flex items-center justify-center pt-2">
                       <Lock
                         className="w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 text-white"
@@ -336,7 +260,6 @@ const LoginPage = () => {
                       />
                     </div>
 
-                    {/* Medical Cross on Shield */}
                     <div className="absolute top-4 right-4 sm:top-5 sm:right-5 w-6 h-6 sm:w-7 sm:h-7 bg-white rounded-md flex items-center justify-center">
                       <svg
                         className="w-4 h-4 sm:w-5 sm:h-5 text-teal-500"
@@ -349,7 +272,6 @@ const LoginPage = () => {
                 </div>
               </div>
 
-              {/* Text Content */}
               <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 mb-3 lg:mb-4 px-4">
                 Your Health Data, Secured
               </h2>
@@ -364,4 +286,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+export default Login;

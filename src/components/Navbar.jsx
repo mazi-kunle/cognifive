@@ -1,22 +1,24 @@
-import { useState } from "react";
-import { Menu, X } from "lucide-react";
-import { Link } from "react-router-dom";
+import React, { useState } from "react";
+import { Menu, X, LogOut } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 
-export default function Navbar() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+const Navbar = ({ isAuthenticated = true, onLogout }) => {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
-  const navLinks = [
-    { name: "Solutions", path: "/solutions" },
-    { name: "Pricing", path: "/pricing" },
-    { name: "Support", path: "/support" },
-  ];
+  const handleLogout = () => {
+    if (onLogout) onLogout();
+    navigate("/login");
+  };
 
   return (
-    <header className="bg-white shadow-sm">
+    <nav className="bg-white shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
+          <Link
+            to={isAuthenticated ? "/dashboard" : "/"}
+            className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-teal-500 rounded-lg flex items-center justify-center">
               <svg
                 className="w-5 h-5 text-white"
@@ -30,67 +32,92 @@ export default function Navbar() {
             </span>
           </Link>
 
-          {/* Centered Links (Desktop) */}
-          <div className="hidden lg:flex gap-8 mx-auto">
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                to={link.path}
-                className="text-gray-600 hover:text-teal-500 transition">
-                {link.name}
-              </Link>
-            ))}
+          {/* Right Side - Desktop */}
+          <div className="hidden md:flex items-center space-x-4">
+            {isAuthenticated ? (
+              <>
+                <Link
+                  to="/dashboard"
+                  className="text-gray-600 hover:text-teal-500 transition">
+                  Dashboard
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-teal-500 transition">
+                  <LogOut className="w-4 h-4" />
+                  <span>Logout</span>
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="text-gray-600 hover:text-teal-500 transition">
+                  Log In
+                </Link>
+                <Link
+                  to="/signup"
+                  className="px-4 py-2 border-2 border-teal-500 text-teal-500 rounded-lg hover:bg-teal-50 transition">
+                  Sign Up
+                </Link>
+              </>
+            )}
           </div>
 
-          {/* Right Buttons (Desktop) */}
-          <div className="hidden lg:flex items-center gap-4">
-            <Link
-              to="/login"
-              className="text-gray-600 hover:text-teal-500 transition">
-              Log In
-            </Link>
-            <Link
-              to="/signup"
-              className="px-4 py-2 rounded-md bg-teal-500 text-white hover:bg-teal-600 transition">
-              Sign Up
-            </Link>
-          </div>
-
-          {/* Mobile Toggle */}
+          {/* Mobile Menu Button */}
           <button
-            className="lg:hidden p-2 text-gray-600 hover:text-gray-800"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="md:hidden p-2 text-gray-600 hover:text-gray-800">
+            {menuOpen ? (
+              <X className="w-6 h-6" />
+            ) : (
+              <Menu className="w-6 h-6" />
+            )}
           </button>
         </div>
-      </div>
 
-      {/* Mobile Menu */}
-      {mobileMenuOpen && (
-        <div className="lg:hidden px-4 pb-4 space-y-2 bg-white border-t">
-          {navLinks.map((link) => (
-            <Link
-              key={link.name}
-              to={link.path}
-              className="block py-2 text-gray-700 border-b"
-              onClick={() => setMobileMenuOpen(false)}>
-              {link.name}
-            </Link>
-          ))}
-          <Link
-            to="/login"
-            className="block py-2 text-gray-700 border-b"
-            onClick={() => setMobileMenuOpen(false)}>
-            Log In
-          </Link>
-          <Link
-            to="/signup"
-            className="block w-full text-center py-2 rounded-md bg-teal-500 text-white hover:bg-teal-600"
-            onClick={() => setMobileMenuOpen(false)}>
-            Sign Up
-          </Link>
-        </div>
-      )}
-    </header>
+        {/* Mobile Menu */}
+        {menuOpen && (
+          <div className="md:hidden py-4 space-y-3 border-t">
+            {isAuthenticated ? (
+              <>
+                <Link
+                  to="/dashboard"
+                  className="block px-4 py-2 text-gray-600 hover:bg-gray-50 rounded"
+                  onClick={() => setMenuOpen(false)}>
+                  Dashboard
+                </Link>
+                <button
+                  onClick={() => {
+                    handleLogout();
+                    setMenuOpen(false);
+                  }}
+                  className="w-full text-left px-4 py-2 text-gray-600 hover:bg-gray-50 rounded flex items-center space-x-2">
+                  <LogOut className="w-4 h-4" />
+                  <span>Logout</span>
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="block px-4 py-2 text-gray-600 hover:bg-gray-50 rounded"
+                  onClick={() => setMenuOpen(false)}>
+                  Log In
+                </Link>
+                <Link
+                  to="/signup"
+                  className="block px-4 py-2 text-teal-500 font-semibold hover:bg-teal-50 rounded"
+                  onClick={() => setMenuOpen(false)}>
+                  Sign Up
+                </Link>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+    </nav>
   );
-}
+};
+
+export default Navbar;
